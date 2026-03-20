@@ -1,0 +1,479 @@
+.app {
+  width: 100%;
+  max-width: 480px;
+  padding: 24px 16px 32px;
+  padding: 24px max(16px, env(safe-area-inset-left)) calc(32px + env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-right));
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Header */
+.header {
+  text-align: center;
+}
+
+.header h1 {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-h);
+  letter-spacing: -0.5px;
+  margin-bottom: 2px;
+}
+
+.subtitle {
+  font-size: 13px;
+  color: var(--text);
+  opacity: 0.7;
+}
+
+/* Difficulty */
+.difficulty-bar {
+  display: flex;
+  gap: 6px;
+}
+
+.diff-btn {
+  flex: 1;
+  padding: 8px 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-card);
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  min-height: 44px;
+  justify-content: center;
+}
+
+.diff-btn:hover {
+  border-color: var(--accent);
+  background: rgba(124, 92, 252, 0.05);
+}
+
+.diff-btn.active {
+  border-color: var(--accent);
+  background: rgba(124, 92, 252, 0.12);
+  color: var(--accent-light);
+}
+
+.diff-label {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.diff-desc {
+  font-size: 10px;
+  opacity: 0.6;
+  white-space: nowrap;
+}
+
+/* Legend */
+.legend {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  font-size: 11px;
+  color: var(--text);
+  opacity: 0.7;
+  flex-wrap: wrap;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Dots */
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.bull-dot {
+  background: var(--green);
+  box-shadow: 0 0 6px rgba(52, 211, 153, 0.4);
+}
+
+.cow-dot {
+  background: var(--yellow);
+  box-shadow: 0 0 6px rgba(251, 191, 36, 0.3);
+}
+
+.miss-dot {
+  background: var(--miss);
+}
+
+/* Game area */
+.game-area {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* History */
+.history {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+  -webkit-overflow-scrolling: touch;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 32px 16px;
+  color: var(--text);
+  opacity: 0.5;
+  font-size: 13px;
+}
+
+.guess-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  animation: slideIn 0.25s ease-out;
+  min-width: 0;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.guess-number {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text);
+  opacity: 0.5;
+  min-width: 20px;
+  font-family: var(--mono);
+  flex-shrink: 0;
+}
+
+.guess-digits {
+  display: flex;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+
+.digit {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: var(--mono);
+  flex-shrink: 0;
+}
+
+.digit.bull {
+  background: rgba(52, 211, 153, 0.15);
+  color: var(--green);
+  border: 1px solid rgba(52, 211, 153, 0.3);
+}
+
+.digit.cow {
+  background: rgba(251, 191, 36, 0.12);
+  color: var(--yellow);
+  border: 1px solid rgba(251, 191, 36, 0.25);
+}
+
+.digit.miss {
+  background: rgba(74, 74, 94, 0.3);
+  color: var(--miss);
+  border: 1px solid transparent;
+}
+
+.digit.neutral {
+  background: rgba(124, 92, 252, 0.08);
+  color: var(--text-h);
+  border: 1px solid var(--border);
+}
+
+.count-hint {
+  font-size: 13px;
+  color: var(--accent-light);
+}
+
+.result-dots {
+  display: flex;
+  gap: 3px;
+  flex-shrink: 0;
+}
+
+.result-text {
+  font-size: 12px;
+  font-family: var(--mono);
+  font-weight: 600;
+  color: var(--text);
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+/* Status banner */
+.status-banner {
+  text-align: center;
+  padding: 20px 16px;
+  border-radius: var(--radius);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.status-banner.won {
+  background: rgba(52, 211, 153, 0.08);
+  border: 1px solid rgba(52, 211, 153, 0.2);
+}
+
+.status-banner.lost {
+  background: rgba(248, 113, 113, 0.08);
+  border: 1px solid rgba(248, 113, 113, 0.2);
+}
+
+.status-emoji {
+  font-size: 32px;
+}
+
+.status-msg {
+  font-size: 15px;
+  color: var(--text-h);
+}
+
+.status-msg strong {
+  color: var(--accent-light);
+}
+
+.play-again-btn {
+  margin-top: 4px;
+  padding: 12px 32px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--accent);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-height: 44px;
+}
+
+.play-again-btn:hover {
+  background: var(--accent-light);
+  transform: translateY(-1px);
+}
+
+/* Input area */
+.input-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 0 0;
+  border-top: 1px solid var(--border);
+}
+
+.input-row {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  width: 100%;
+}
+
+.digit-input {
+  width: 48px;
+  height: 52px;
+  text-align: center;
+  font-size: 22px;
+  font-weight: 700;
+  font-family: var(--mono);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-input);
+  color: var(--text-h);
+  outline: none;
+  transition: all 0.2s;
+  caret-color: var(--accent);
+  /* Prevent iOS zoom on focus */
+  font-size: max(22px, 16px);
+}
+
+.digit-input::placeholder {
+  color: var(--miss);
+  font-weight: 400;
+}
+
+.digit-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(124, 92, 252, 0.15);
+}
+
+.input-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  justify-content: center;
+}
+
+.submit-btn {
+  padding: 12px 32px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--accent);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-height: 44px;
+}
+
+.submit-btn:hover:not(:disabled) {
+  background: var(--accent-light);
+  transform: translateY(-1px);
+}
+
+.submit-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.remaining {
+  font-size: 12px;
+  color: var(--text);
+  opacity: 0.6;
+  font-family: var(--mono);
+}
+
+/* === Mobile-specific (≤ 430px) === */
+@media (max-width: 430px) {
+  .app {
+    gap: 12px;
+    padding: 20px 20px 28px;
+    padding: 20px max(20px, env(safe-area-inset-left)) calc(28px + env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-right));
+    min-height: 100dvh;
+  }
+
+  .game-area {
+    flex: 1;
+    justify-content: space-between;
+  }
+
+  .header h1 {
+    font-size: 24px;
+  }
+
+  .guess-row {
+    gap: 6px;
+    padding: 7px 8px;
+  }
+
+  .guess-number {
+    min-width: 18px;
+    font-size: 10px;
+  }
+
+  .digit {
+    width: 26px;
+    height: 26px;
+    font-size: 13px;
+    border-radius: 5px;
+  }
+
+  .guess-digits {
+    gap: 3px;
+  }
+
+  .result-dots {
+    gap: 2px;
+  }
+
+  .dot {
+    width: 7px;
+    height: 7px;
+  }
+
+  .result-text {
+    font-size: 11px;
+  }
+
+  .digit-input {
+    width: 44px;
+    height: 48px;
+    font-size: 20px;
+  }
+
+  .input-row {
+    gap: 6px;
+  }
+
+  .input-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .submit-btn {
+    width: 100%;
+    padding: 14px;
+    font-size: 16px;
+  }
+
+  .play-again-btn {
+    width: 100%;
+    padding: 14px;
+    font-size: 16px;
+  }
+
+  .empty-state {
+    padding: 24px 12px;
+  }
+}
+
+/* === Larger screens === */
+@media (min-width: 431px) {
+  .app {
+    padding-top: 32px;
+  }
+
+  .header h1 {
+    font-size: 32px;
+  }
+
+  .digit {
+    width: 34px;
+    height: 34px;
+    font-size: 16px;
+  }
+}
