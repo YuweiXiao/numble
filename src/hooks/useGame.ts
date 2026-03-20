@@ -1,6 +1,8 @@
 import { useState, useCallback } from 'react';
-import type { Difficulty, GuessResult, GameStatus } from '../types';
+import type { Difficulty, GuessResult, GameStatus, GameRecord } from '../types';
 import { DIFFICULTIES } from '../types';
+
+const HISTORY_KEY = 'numble-history';
 
 function generateSecret(digits: number): number[] {
   const available = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
@@ -26,6 +28,21 @@ function evaluate(guess: number[], secret: number[]): { bulls: number; cows: num
   return { bulls, cows };
 }
 
+function loadHistory(): GameRecord[] {
+  try {
+    const raw = localStorage.getItem(HISTORY_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveRecord(record: GameRecord) {
+  const records = loadHistory();
+  records.push(record);
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(records));
+}
+
 export function useGame() {
   const [difficulty, setDifficulty] = useState<Difficulty>('normal');
   const [secret, setSecret] = useState<number[]>(() => {
@@ -35,6 +52,7 @@ export function useGame() {
   });
   const [history, setHistory] = useState<GuessResult[]>([]);
   const [status, setStatus] = useState<GameStatus>('playing');
+  const [playHistory, setPlayHistory] = useState<GameRecord[]>(loadHistory);
 
   const config = DIFFICULTIES[difficulty];
 
@@ -43,17 +61,22 @@ export function useGame() {
 
     const { bulls, cows } = evaluate(guess, secret);
     const result: GuessResult = { guess, bulls, cows };
+    const next = [...history, result];
 
-    setHistory(prev => {
-      const next = [...prev, result];
-      if (bulls === config.digits) {
-        setStatus('won');
-      } else if (next.length >= config.maxGuesses) {
-        setStatus('lost');
-      }
-      return next;
-    });
-  }, [status, secret, config]);
+    setHistory(next);
+
+    if (bulls === config.digits) {
+      setStatus('won');
+      const record: GameRecord = { difficulty, won: true, guesses: next.length, timestamp: Date.now() };
+      saveRecord(record);
+      setPlayHistory(loadHistory());
+    } else if (next.length >= config.maxGuesses) {
+      setStatus('lost');
+      const record: GameRecord = { difficulty, won: false, guesses: next.length, timestamp: Date.now() };
+      saveRecord(record);
+      setPlayHistory(loadHistory());
+    }
+  }, [status, secret, config, difficulty, history]);
 
   const newGame = useCallback((diff?: Difficulty) => {
     const d = diff ?? difficulty;
@@ -65,5 +88,10 @@ export function useGame() {
     setStatus('playing');
   }, [difficulty]);
 
-  return { difficulty, config, history, status, secret, submitGuess, newGame };
+  const clearHistory = useCallback(() => {
+    localStorage.removeItem(HISTORY_KEY);
+    setPlayHistory([]);
+  }, []);
+
+  return { difficulty, config, history, status, secret, submitGuess, newGame, playHistory, clearHistory };
 }

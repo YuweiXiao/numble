@@ -30,7 +30,7 @@ export const DIFFICULTIES: Record<Difficulty, DifficultyConfig> = {
   hard: {
     label: 'Hard',
     digits: 4,
-    maxGuesses: 10,
+    maxGuesses: Infinity,
     hintMode: 'count',
     description: '4 digits, count only',
   },
@@ -43,3 +43,10 @@ export interface GuessResult {
 }
 
 export type GameStatus = 'playing' | 'won' | 'lost';
+
+export interface GameRecord {
+  difficulty: Difficulty;
+  won: boolean;
+  guesses: number;
+  timestamp: number;
+}

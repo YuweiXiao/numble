@@ -4,11 +4,24 @@ import type { Difficulty } from './types';
 import { DIFFICULTIES } from './types';
 import './App.css';
 
+function relativeTime(ts: number): string {
+  const diff = Date.now() - ts;
+  const seconds = Math.floor(diff / 1000);
+  if (seconds < 60) return 'just now';
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
+}
+
 function App() {
-  const { difficulty, config, history, status, secret, submitGuess, newGame } = useGame();
+  const { difficulty, config, history, status, secret, submitGuess, newGame, playHistory, clearHistory } = useGame();
   const [inputs, setInputs] = useState<string[]>(Array(config.digits).fill(''));
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const historyEndRef = useRef<HTMLDivElement | null>(null);
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   // Reset inputs on new game
   useEffect(() => {
@@ -139,7 +152,7 @@ function App() {
                 </>
               ) : (
                 <span className="result-text count-hint">
-                  {result.bulls + result.cows} / {config.digits} match
+                  {result.bulls} / {config.digits} match
                 </span>
               )}
             </div>
@@ -197,10 +210,46 @@ function App() {
               >
                 Guess
               </button>
-              <span className="remaining">
-                {remaining} {remaining === 1 ? 'try' : 'tries'} left
-              </span>
+              {config.maxGuesses !== Infinity && (
+                <span className="remaining">
+                  {remaining} {remaining === 1 ? 'try' : 'tries'} left
+                </span>
+              )}
             </div>
+          </div>
+        )}
+      </div>
+
+      <div className="history-section">
+        <button className="history-toggle" onClick={() => setHistoryOpen(o => !o)}>
+          <span>History ({playHistory.length})</span>
+          <span className={`toggle-arrow ${historyOpen ? 'open' : ''}`}>&#9662;</span>
+        </button>
+        {historyOpen && (
+          <div className="history-panel">
+            {playHistory.length === 0 ? (
+              <p className="history-empty">No games played yet</p>
+            ) : (
+              <>
+                <div className="history-records">
+                  {[...playHistory].reverse().map((rec, i) => (
+                    <div key={i} className="history-record">
+                      <span className={`history-diff diff-${rec.difficulty}`}>
+                        {DIFFICULTIES[rec.difficulty].label}
+                      </span>
+                      <span className={`history-outcome ${rec.won ? 'win' : 'loss'}`}>
+                        {rec.won ? '✓' : '✗'}
+                      </span>
+                      <span className="history-guesses">
+                        {rec.guesses} {rec.guesses === 1 ? 'guess' : 'guesses'}
+                      </span>
+                      <span className="history-time">{relativeTime(rec.timestamp)}</span>
+                    </div>
+                  ))}
+                </div>
+                <button className="history-clear" onClick={clearHistory}>Clear History</button>
+              </>
+            )}
           </div>
         )}
       </div>
