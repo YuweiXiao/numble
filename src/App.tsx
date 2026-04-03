@@ -28,15 +28,10 @@ function useKeyboardState() {
     const onResize = () => {
       const isOpen = window.innerHeight - vv.height > threshold;
       setState({ open: isOpen, viewportHeight: vv.height });
-      if (isOpen) window.scrollTo(0, 0);
     };
 
     vv.addEventListener('resize', onResize);
-    vv.addEventListener('scroll', onResize);
-    return () => {
-      vv.removeEventListener('resize', onResize);
-      vv.removeEventListener('scroll', onResize);
-    };
+    return () => vv.removeEventListener('resize', onResize);
   }, []);
 
   return state;
