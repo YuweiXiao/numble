@@ -17,8 +17,8 @@ function relativeTime(ts: number): string {
   return `${days}d ago`;
 }
 
-function useKeyboardOpen() {
-  const [keyboardOpen, setKeyboardOpen] = useState(false);
+function useKeyboardState() {
+  const [state, setState] = useState({ open: false, viewportHeight: 0 });
 
   useEffect(() => {
     const vv = window.visualViewport;
@@ -27,15 +27,19 @@ function useKeyboardOpen() {
     const threshold = 150;
     const onResize = () => {
       const isOpen = window.innerHeight - vv.height > threshold;
-      setKeyboardOpen(isOpen);
+      setState({ open: isOpen, viewportHeight: vv.height });
       if (isOpen) window.scrollTo(0, 0);
     };
 
     vv.addEventListener('resize', onResize);
-    return () => vv.removeEventListener('resize', onResize);
+    vv.addEventListener('scroll', onResize);
+    return () => {
+      vv.removeEventListener('resize', onResize);
+      vv.removeEventListener('scroll', onResize);
+    };
   }, []);
 
-  return keyboardOpen;
+  return state;
 }
 
 const DIFF_LABELS: Record<Difficulty, { label: 'easyLabel' | 'normalLabel' | 'hardLabel'; desc: 'easyDesc' | 'normalDesc' | 'hardDesc' }> = {
@@ -53,7 +57,7 @@ function App() {
   const historyEndRef = useRef<HTMLDivElement | null>(null);
   const [activeTab, setActiveTab] = useState<Tab>('play');
   const { t, lang, toggleLang } = useLang();
-  const keyboardOpen = useKeyboardOpen();
+  const { open: keyboardOpen, viewportHeight } = useKeyboardState();
 
   useEffect(() => {
     if (history.length === 0) {
@@ -107,7 +111,10 @@ function App() {
   const remaining = config.maxGuesses - history.length;
 
   return (
-    <div className={`app ${keyboardOpen ? 'keyboard-open' : ''}`}>
+    <div
+      className={`app ${keyboardOpen ? 'keyboard-open' : ''}`}
+      style={keyboardOpen && viewportHeight ? { height: viewportHeight, maxHeight: viewportHeight } : undefined}
+    >
       <header className="header hide-on-keyboard">
         <div className="header-top">
           <h1>{t.title}</h1>
