@@ -256,7 +256,7 @@ function App() {
                       onKeyDown={e => handleKeyDown(i, e)}
                       className="digit-input"
                       autoFocus={i === 0}
-                      autoComplete="off"
+                      autoComplete="one-time-code"
                       autoCorrect="off"
                       autoCapitalize="off"
                       spellCheck={false}
