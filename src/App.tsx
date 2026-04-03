@@ -247,9 +247,7 @@ function App() {
                     <input
                       key={`${config.digits}-${i}`}
                       ref={el => { inputRefs.current[i] = el; }}
-                      type="text"
-                      inputMode="numeric"
-                      pattern="[0-9]*"
+                      type="tel"
                       maxLength={1}
                       value={v}
                       onChange={e => handleInput(i, e.target.value)}
