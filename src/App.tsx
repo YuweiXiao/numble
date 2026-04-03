@@ -252,6 +252,8 @@ function App() {
                   <button
                     className="submit-btn"
                     onClick={handleSubmit}
+                    onTouchStart={e => e.preventDefault()}
+                    onMouseDown={e => e.preventDefault()}
                     disabled={!guessIsValid}
                   >
                     {t.guessBtn}
