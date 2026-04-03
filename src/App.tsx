@@ -17,24 +17,43 @@ function relativeTime(ts: number): string {
   return `${days}d ago`;
 }
 
-function useKeyboardState() {
-  const [state, setState] = useState({ open: false, viewportHeight: 0 });
+function useKeyboardState(appRef: React.RefObject<HTMLDivElement | null>) {
+  const [keyboardOpen, setKeyboardOpen] = useState(false);
 
   useEffect(() => {
     const vv = window.visualViewport;
     if (!vv) return;
 
     const threshold = 150;
+    let wasOpen = false;
+
     const onResize = () => {
       const isOpen = window.innerHeight - vv.height > threshold;
-      setState({ open: isOpen, viewportHeight: vv.height });
+      const el = appRef.current;
+
+      // Update height directly on the DOM — no React re-render
+      if (el) {
+        if (isOpen) {
+          el.style.height = `${vv.height}px`;
+          el.style.maxHeight = `${vv.height}px`;
+        } else {
+          el.style.height = '';
+          el.style.maxHeight = '';
+        }
+      }
+
+      // Only trigger React re-render when open/closed state changes
+      if (isOpen !== wasOpen) {
+        wasOpen = isOpen;
+        setKeyboardOpen(isOpen);
+      }
     };
 
     vv.addEventListener('resize', onResize);
     return () => vv.removeEventListener('resize', onResize);
-  }, []);
+  }, [appRef]);
 
-  return state;
+  return keyboardOpen;
 }
 
 const DIFF_LABELS: Record<Difficulty, { label: 'easyLabel' | 'normalLabel' | 'hardLabel'; desc: 'easyDesc' | 'normalDesc' | 'hardDesc' }> = {
@@ -50,9 +69,10 @@ function App() {
   const [inputs, setInputs] = useState<string[]>(Array(config.digits).fill(''));
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const historyRef = useRef<HTMLDivElement | null>(null);
+  const appRef = useRef<HTMLDivElement | null>(null);
   const [activeTab, setActiveTab] = useState<Tab>('play');
   const { t, lang, toggleLang } = useLang();
-  const { open: keyboardOpen, viewportHeight } = useKeyboardState();
+  const keyboardOpen = useKeyboardState(appRef);
 
   useEffect(() => {
     if (history.length === 0) {
@@ -104,8 +124,8 @@ function App() {
 
   return (
     <div
+      ref={appRef}
       className={`app ${keyboardOpen ? 'keyboard-open' : ''}`}
-      style={keyboardOpen && viewportHeight ? { height: viewportHeight, maxHeight: viewportHeight } : undefined}
     >
       <header className="header hide-on-keyboard">
         <div className="header-top">
