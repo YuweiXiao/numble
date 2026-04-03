@@ -247,12 +247,18 @@ function App() {
                       ref={el => { inputRefs.current[i] = el; }}
                       type="text"
                       inputMode="numeric"
+                      pattern="[0-9]*"
                       maxLength={1}
                       value={v}
                       onChange={e => handleInput(i, e.target.value)}
                       onKeyDown={e => handleKeyDown(i, e)}
                       className="digit-input"
                       autoFocus={i === 0}
+                      autoComplete="off"
+                      autoCorrect="off"
+                      autoCapitalize="off"
+                      spellCheck={false}
+                      enterKeyHint="done"
                       placeholder="?"
                     />
                   ))}
