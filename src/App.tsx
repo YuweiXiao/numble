@@ -29,22 +29,20 @@ function useKeyboardState(appRef: React.RefObject<HTMLDivElement | null>) {
 
     const onResize = () => {
       const isOpen = window.innerHeight - vv.height > threshold;
-      const el = appRef.current;
 
-      // Update height directly on the DOM — no React re-render
-      if (el) {
-        if (isOpen) {
-          el.style.height = `${vv.height}px`;
-          el.style.maxHeight = `${vv.height}px`;
-        } else {
-          el.style.height = '';
-          el.style.maxHeight = '';
-        }
-      }
-
-      // Only trigger React re-render when open/closed state changes
+      // Only act on keyboard open/close transitions — ignore fluctuations during typing
       if (isOpen !== wasOpen) {
         wasOpen = isOpen;
+        const el = appRef.current;
+        if (el) {
+          if (isOpen) {
+            el.style.height = `${vv.height}px`;
+            el.style.maxHeight = `${vv.height}px`;
+          } else {
+            el.style.height = '';
+            el.style.maxHeight = '';
+          }
+        }
         setKeyboardOpen(isOpen);
       }
     };
