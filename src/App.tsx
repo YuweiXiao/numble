@@ -17,29 +17,25 @@ function relativeTime(ts: number): string {
   return `${days}d ago`;
 }
 
-function useVisualViewport() {
-  const [height, setHeight] = useState<number | undefined>(undefined);
+function useKeyboardOpen() {
+  const [keyboardOpen, setKeyboardOpen] = useState(false);
 
   useEffect(() => {
     const vv = window.visualViewport;
     if (!vv) return;
 
+    const threshold = 150; // keyboard is typically 200px+
     const onResize = () => {
-      // When keyboard is open, visualViewport.height < window.innerHeight
-      // Scroll the viewport back to top to prevent browser auto-scroll
-      setHeight(vv.height);
-      window.scrollTo(0, 0);
+      const isOpen = window.innerHeight - vv.height > threshold;
+      setKeyboardOpen(isOpen);
+      if (isOpen) window.scrollTo(0, 0);
     };
 
     vv.addEventListener('resize', onResize);
-    vv.addEventListener('scroll', onResize);
-    return () => {
-      vv.removeEventListener('resize', onResize);
-      vv.removeEventListener('scroll', onResize);
-    };
+    return () => vv.removeEventListener('resize', onResize);
   }, []);
 
-  return height;
+  return keyboardOpen;
 }
 
 const DIFF_LABELS: Record<Difficulty, { label: 'easyLabel' | 'normalLabel' | 'hardLabel'; desc: 'easyDesc' | 'normalDesc' | 'hardDesc' }> = {
@@ -56,7 +52,7 @@ function App() {
   const [historyOpen, setHistoryOpen] = useState(false);
   const [instructionsOpen, setInstructionsOpen] = useState(false);
   const { t, lang, toggleLang } = useLang();
-  const viewportHeight = useVisualViewport();
+  const keyboardOpen = useKeyboardOpen();
 
   useEffect(() => {
     if (history.length === 0) {
@@ -110,8 +106,8 @@ function App() {
   const remaining = config.maxGuesses - history.length;
 
   return (
-    <div className="app" style={viewportHeight ? { height: viewportHeight } : undefined}>
-      <header className="header">
+    <div className={`app ${keyboardOpen ? 'keyboard-open' : ''}`}>
+      <header className="header hide-on-keyboard">
         <div className="header-top">
           <h1>{t.title}</h1>
           <button className="lang-toggle" onClick={toggleLang}>
@@ -121,7 +117,7 @@ function App() {
         <p className="subtitle">{t.subtitle(config.digits)}</p>
       </header>
 
-      <div className="difficulty-bar">
+      <div className="difficulty-bar hide-on-keyboard">
         {(Object.keys(DIFFICULTIES) as Difficulty[]).map(d => (
           <button
             key={d}
@@ -134,7 +130,7 @@ function App() {
         ))}
       </div>
 
-      <div className="legend">
+      <div className="legend hide-on-keyboard">
         {config.hintMode === 'full' ? (
           <>
             <span className="legend-item">
@@ -153,7 +149,7 @@ function App() {
       </div>
 
       {/* How to Play */}
-      <div className="instructions-section">
+      <div className="instructions-section hide-on-keyboard">
         <button className="instructions-toggle" onClick={() => setInstructionsOpen(o => !o)}>
           <span>{t.howToPlay}</span>
           <span className={`toggle-arrow ${instructionsOpen ? 'open' : ''}`}>&#9662;</span>
@@ -293,7 +289,7 @@ function App() {
         )}
       </div>
 
-      <div className="history-section">
+      <div className="history-section hide-on-keyboard">
         <button className="history-toggle" onClick={() => setHistoryOpen(o => !o)}>
           <span>{t.history(playHistory.length)}</span>
           <span className={`toggle-arrow ${historyOpen ? 'open' : ''}`}>&#9662;</span>
