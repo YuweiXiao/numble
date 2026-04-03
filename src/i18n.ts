@@ -22,6 +22,7 @@ const en = {
   // Game
   emptyState: (digits: number) => `Enter ${digits} unique digits (0-9) to start guessing`,
   guessBtn: 'Guess',
+  duplicateWarning: 'Each digit must be different',
   triesLeft: (n: number) => `${n} ${n === 1 ? 'try' : 'tries'} left`,
   match: (bulls: number, digits: number) => `${bulls} / ${digits} match`,
 
@@ -86,6 +87,7 @@ const zh: typeof en = {
 
   emptyState: (digits: number) => `输入 ${digits} 个不重复数字（0-9）开始猜测`,
   guessBtn: '猜',
+  duplicateWarning: '每个数字不能重复',
   triesLeft: (n: number) => `剩余 ${n} 次机会`,
   match: (bulls: number, digits: number) => `${bulls} / ${digits} 匹配`,
 

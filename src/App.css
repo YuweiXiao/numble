@@ -359,6 +359,12 @@
   transform: translateY(-1px);
 }
 
+.duplicate-warning {
+  font-size: 12px;
+  color: var(--red);
+  text-align: center;
+}
+
 /* Input area */
 .input-area {
   display: flex;

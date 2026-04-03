@@ -117,7 +117,9 @@ function App() {
     setTimeout(() => inputRefs.current[0]?.focus(), 50);
   };
 
-  const guessIsValid = inputs.every(v => v !== '') && new Set(inputs).size === inputs.length;
+  const allFilled = inputs.every(v => v !== '');
+  const hasDuplicates = allFilled && new Set(inputs).size !== inputs.length;
+  const guessIsValid = allFilled && !hasDuplicates;
   const remaining = config.maxGuesses - history.length;
 
   return (
@@ -263,6 +265,9 @@ function App() {
                     />
                   ))}
                 </div>
+                {hasDuplicates && (
+                  <p className="duplicate-warning">{t.duplicateWarning}</p>
+                )}
                 <div className="input-actions">
                   <button
                     className="submit-btn"
