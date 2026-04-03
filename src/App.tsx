@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useGame } from './hooks/useGame';
 import type { Difficulty } from './types';
 import { DIFFICULTIES } from './types';
@@ -17,6 +17,31 @@ function relativeTime(ts: number): string {
   return `${days}d ago`;
 }
 
+function useVisualViewport() {
+  const [height, setHeight] = useState<number | undefined>(undefined);
+
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+
+    const onResize = () => {
+      // When keyboard is open, visualViewport.height < window.innerHeight
+      // Scroll the viewport back to top to prevent browser auto-scroll
+      setHeight(vv.height);
+      window.scrollTo(0, 0);
+    };
+
+    vv.addEventListener('resize', onResize);
+    vv.addEventListener('scroll', onResize);
+    return () => {
+      vv.removeEventListener('resize', onResize);
+      vv.removeEventListener('scroll', onResize);
+    };
+  }, []);
+
+  return height;
+}
+
 const DIFF_LABELS: Record<Difficulty, { label: 'easyLabel' | 'normalLabel' | 'hardLabel'; desc: 'easyDesc' | 'normalDesc' | 'hardDesc' }> = {
   easy: { label: 'easyLabel', desc: 'easyDesc' },
   normal: { label: 'normalLabel', desc: 'normalDesc' },
@@ -31,6 +56,7 @@ function App() {
   const [historyOpen, setHistoryOpen] = useState(false);
   const [instructionsOpen, setInstructionsOpen] = useState(false);
   const { t, lang, toggleLang } = useLang();
+  const viewportHeight = useVisualViewport();
 
   useEffect(() => {
     if (history.length === 0) {
@@ -38,9 +64,13 @@ function App() {
     }
   }, [config.digits, history.length]);
 
-  useEffect(() => {
+  const scrollToBottom = useCallback(() => {
     historyEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [history.length]);
+  }, []);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [history.length, scrollToBottom]);
 
   const handleInput = (index: number, value: string) => {
     if (!/^\d?$/.test(value)) return;
@@ -80,7 +110,7 @@ function App() {
   const remaining = config.maxGuesses - history.length;
 
   return (
-    <div className="app">
+    <div className="app" style={viewportHeight ? { height: viewportHeight } : undefined}>
       <header className="header">
         <div className="header-top">
           <h1>{t.title}</h1>

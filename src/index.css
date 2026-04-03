@@ -32,14 +32,16 @@
 }
 
 body {
-  min-height: 100dvh;
+  height: 100dvh;
+  overflow: hidden;
   overscroll-behavior: none;
 }
 
 #root {
-  min-height: 100dvh;
+  height: 100%;
   display: flex;
   justify-content: center;
+  overflow: hidden;
 }
 
 @supports (padding: env(safe-area-inset-top)) {
