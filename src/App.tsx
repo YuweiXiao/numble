@@ -24,7 +24,7 @@ function useKeyboardOpen() {
     const vv = window.visualViewport;
     if (!vv) return;
 
-    const threshold = 150; // keyboard is typically 200px+
+    const threshold = 150;
     const onResize = () => {
       const isOpen = window.innerHeight - vv.height > threshold;
       setKeyboardOpen(isOpen);
@@ -44,13 +44,14 @@ const DIFF_LABELS: Record<Difficulty, { label: 'easyLabel' | 'normalLabel' | 'ha
   hard: { label: 'hardLabel', desc: 'hardDesc' },
 };
 
+type Tab = 'play' | 'info';
+
 function App() {
   const { difficulty, config, history, status, secret, submitGuess, newGame, playHistory, clearHistory } = useGame();
   const [inputs, setInputs] = useState<string[]>(Array(config.digits).fill(''));
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const historyEndRef = useRef<HTMLDivElement | null>(null);
-  const [historyOpen, setHistoryOpen] = useState(false);
-  const [instructionsOpen, setInstructionsOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<Tab>('play');
   const { t, lang, toggleLang } = useLang();
   const keyboardOpen = useKeyboardOpen();
 
@@ -117,185 +118,195 @@ function App() {
         <p className="subtitle">{t.subtitle(config.digits)}</p>
       </header>
 
-      <div className="difficulty-bar hide-on-keyboard">
-        {(Object.keys(DIFFICULTIES) as Difficulty[]).map(d => (
-          <button
-            key={d}
-            className={`diff-btn ${d === difficulty ? 'active' : ''}`}
-            onClick={() => handleNewGame(d)}
-          >
-            <span className="diff-label">{t[DIFF_LABELS[d].label]}</span>
-            <span className="diff-desc">{t[DIFF_LABELS[d].desc]}</span>
-          </button>
-        ))}
-      </div>
-
-      <div className="legend hide-on-keyboard">
-        {config.hintMode === 'full' ? (
-          <>
-            <span className="legend-item">
-              <span className="dot bull-dot" /> {t.correctPosition}
-            </span>
-            <span className="legend-item">
-              <span className="dot cow-dot" /> {t.wrongPosition}
-            </span>
-            <span className="legend-item">
-              <span className="dot miss-dot" /> {t.notInNumber}
-            </span>
-          </>
-        ) : (
-          <span className="legend-item">{t.countHint}</span>
-        )}
-      </div>
-
-      {/* How to Play */}
-      <div className="instructions-section hide-on-keyboard">
-        <button className="instructions-toggle" onClick={() => setInstructionsOpen(o => !o)}>
-          <span>{t.howToPlay}</span>
-          <span className={`toggle-arrow ${instructionsOpen ? 'open' : ''}`}>&#9662;</span>
+      <div className="tab-bar hide-on-keyboard">
+        <button
+          className={`tab-btn ${activeTab === 'play' ? 'active' : ''}`}
+          onClick={() => setActiveTab('play')}
+        >
+          {t.tabPlay}
         </button>
-        {instructionsOpen && (
-          <div className="instructions-panel">
-            {t.instructions.map((line, i) => (
-              <p key={i}>{line}</p>
-            ))}
-            <div className="instructions-group">
-              {t.instructionsFull.map((line, i) => (
-                <p key={i} className={i === 0 ? 'instructions-heading' : 'instructions-detail'}>
-                  {i === 1 && <span className="dot bull-dot" />}
-                  {i === 2 && <span className="dot cow-dot" />}
-                  {i === 3 && <span className="dot miss-dot" />}
-                  {line}
-                </p>
-              ))}
-            </div>
-            <div className="instructions-group">
-              {t.instructionsCount.map((line, i) => (
-                <p key={i} className={i === 0 ? 'instructions-heading' : 'instructions-detail'}>{line}</p>
-              ))}
-            </div>
-            <div className="instructions-group">
-              {t.instructionsDifficulty.map((line, i) => (
-                <p key={i} className={i === 0 ? 'instructions-heading' : 'instructions-detail'}>{line}</p>
-              ))}
-            </div>
-          </div>
-        )}
+        <button
+          className={`tab-btn ${activeTab === 'info' ? 'active' : ''}`}
+          onClick={() => setActiveTab('info')}
+        >
+          {t.tabInfo}
+        </button>
       </div>
 
-      <div className="game-area">
-        <div className="history">
-          {history.length === 0 && status === 'playing' && (
-            <div className="empty-state">
-              <p>{t.emptyState(config.digits)}</p>
-            </div>
-          )}
-          {history.map((result, i) => (
-            <div key={i} className="guess-row" style={{ animationDelay: `${0}ms` }}>
-              <span className="guess-number">#{i + 1}</span>
-              <div className="guess-digits">
-                {result.guess.map((d, j) => {
-                  let cls = 'digit';
-                  if (config.hintMode === 'full') {
-                    if (d === secret[j]) cls += ' bull';
-                    else if (secret.includes(d)) cls += ' cow';
-                    else cls += ' miss';
-                  } else {
-                    cls += (result.bulls === config.digits) ? ' bull' : ' neutral';
-                  }
-                  return <span key={j} className={cls}>{d}</span>;
-                })}
-              </div>
-              {config.hintMode === 'full' ? (
-                <>
-                  <div className="result-dots">
-                    {Array.from({ length: result.bulls }, (_, k) => (
-                      <span key={`b${k}`} className="dot bull-dot" />
-                    ))}
-                    {Array.from({ length: result.cows }, (_, k) => (
-                      <span key={`c${k}`} className="dot cow-dot" />
-                    ))}
-                    {Array.from({ length: config.digits - result.bulls - result.cows }, (_, k) => (
-                      <span key={`m${k}`} className="dot miss-dot" />
-                    ))}
-                  </div>
-                  <span className="result-text">
-                    {result.bulls}A {result.cows}B
-                  </span>
-                </>
-              ) : (
-                <span className="result-text count-hint">
-                  {t.match(result.bulls, config.digits)}
-                </span>
-              )}
-            </div>
-          ))}
-          <div ref={historyEndRef} />
-        </div>
-
-        {status !== 'playing' && (
-          <div className={`status-banner ${status}`}>
-            {status === 'won' ? (
+      {activeTab === 'play' && (
+        <>
+          <div className="legend hide-on-keyboard">
+            {config.hintMode === 'full' ? (
               <>
-                <div className="status-emoji">&#127881;</div>
-                <div className="status-msg" dangerouslySetInnerHTML={{ __html: t.wonMsg(history.length) }} />
+                <span className="legend-item">
+                  <span className="dot bull-dot" /> {t.correctPosition}
+                </span>
+                <span className="legend-item">
+                  <span className="dot cow-dot" /> {t.wrongPosition}
+                </span>
+                <span className="legend-item">
+                  <span className="dot miss-dot" /> {t.notInNumber}
+                </span>
               </>
             ) : (
-              <>
-                <div className="status-emoji">&#128064;</div>
-                <div className="status-msg" dangerouslySetInnerHTML={{ __html: t.lostMsg(secret.join(' ')) }} />
-              </>
+              <span className="legend-item">{t.countHint}</span>
             )}
-            <button className="play-again-btn" onClick={() => handleNewGame()}>
-              {t.playAgain}
-            </button>
           </div>
-        )}
 
-        {status === 'playing' && (
-          <div className="input-area">
-            <div className="input-row">
-              {inputs.map((v, i) => (
-                <input
-                  key={`${config.digits}-${i}`}
-                  ref={el => { inputRefs.current[i] = el; }}
-                  type="text"
-                  inputMode="numeric"
-                  maxLength={1}
-                  value={v}
-                  onChange={e => handleInput(i, e.target.value)}
-                  onKeyDown={e => handleKeyDown(i, e)}
-                  className="digit-input"
-                  autoFocus={i === 0}
-                  placeholder="?"
-                />
-              ))}
-            </div>
-            <div className="input-actions">
-              <button
-                className="submit-btn"
-                onClick={handleSubmit}
-                disabled={!guessIsValid}
-              >
-                {t.guessBtn}
-              </button>
-              {config.maxGuesses !== Infinity && (
-                <span className="remaining">
-                  {t.triesLeft(remaining)}
-                </span>
+          <div className="game-area">
+            <div className="history">
+              {history.length === 0 && status === 'playing' && (
+                <div className="empty-state">
+                  <p>{t.emptyState(config.digits)}</p>
+                </div>
               )}
+              {history.map((result, i) => (
+                <div key={i} className="guess-row" style={{ animationDelay: `${0}ms` }}>
+                  <span className="guess-number">#{i + 1}</span>
+                  <div className="guess-digits">
+                    {result.guess.map((d, j) => {
+                      let cls = 'digit';
+                      if (config.hintMode === 'full') {
+                        if (d === secret[j]) cls += ' bull';
+                        else if (secret.includes(d)) cls += ' cow';
+                        else cls += ' miss';
+                      } else {
+                        cls += (result.bulls === config.digits) ? ' bull' : ' neutral';
+                      }
+                      return <span key={j} className={cls}>{d}</span>;
+                    })}
+                  </div>
+                  {config.hintMode === 'full' ? (
+                    <>
+                      <div className="result-dots">
+                        {Array.from({ length: result.bulls }, (_, k) => (
+                          <span key={`b${k}`} className="dot bull-dot" />
+                        ))}
+                        {Array.from({ length: result.cows }, (_, k) => (
+                          <span key={`c${k}`} className="dot cow-dot" />
+                        ))}
+                        {Array.from({ length: config.digits - result.bulls - result.cows }, (_, k) => (
+                          <span key={`m${k}`} className="dot miss-dot" />
+                        ))}
+                      </div>
+                      <span className="result-text">
+                        {result.bulls}A {result.cows}B
+                      </span>
+                    </>
+                  ) : (
+                    <span className="result-text count-hint">
+                      {t.match(result.bulls, config.digits)}
+                    </span>
+                  )}
+                </div>
+              ))}
+              <div ref={historyEndRef} />
+            </div>
+
+            {status !== 'playing' && (
+              <div className={`status-banner ${status}`}>
+                {status === 'won' ? (
+                  <>
+                    <div className="status-emoji">&#127881;</div>
+                    <div className="status-msg" dangerouslySetInnerHTML={{ __html: t.wonMsg(history.length) }} />
+                  </>
+                ) : (
+                  <>
+                    <div className="status-emoji">&#128064;</div>
+                    <div className="status-msg" dangerouslySetInnerHTML={{ __html: t.lostMsg(secret.join(' ')) }} />
+                  </>
+                )}
+                <button className="play-again-btn" onClick={() => handleNewGame()}>
+                  {t.playAgain}
+                </button>
+              </div>
+            )}
+
+            {status === 'playing' && (
+              <div className="input-area">
+                <div className="input-row">
+                  {inputs.map((v, i) => (
+                    <input
+                      key={`${config.digits}-${i}`}
+                      ref={el => { inputRefs.current[i] = el; }}
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={1}
+                      value={v}
+                      onChange={e => handleInput(i, e.target.value)}
+                      onKeyDown={e => handleKeyDown(i, e)}
+                      className="digit-input"
+                      autoFocus={i === 0}
+                      placeholder="?"
+                    />
+                  ))}
+                </div>
+                <div className="input-actions">
+                  <button
+                    className="submit-btn"
+                    onClick={handleSubmit}
+                    disabled={!guessIsValid}
+                  >
+                    {t.guessBtn}
+                  </button>
+                  {config.maxGuesses !== Infinity && (
+                    <span className="remaining">
+                      {t.triesLeft(remaining)}
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="difficulty-bar hide-on-keyboard">
+            {(Object.keys(DIFFICULTIES) as Difficulty[]).map(d => (
+              <button
+                key={d}
+                className={`diff-btn ${d === difficulty ? 'active' : ''}`}
+                onClick={() => handleNewGame(d)}
+              >
+                <span className="diff-label">{t[DIFF_LABELS[d].label]}</span>
+                <span className="diff-desc">{t[DIFF_LABELS[d].desc]}</span>
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+
+      {activeTab === 'info' && (
+        <div className="info-tab">
+          <div className="info-section">
+            <h2 className="info-heading">{t.howToPlay}</h2>
+            <div className="instructions-panel">
+              {t.instructions.map((line, i) => (
+                <p key={i}>{line}</p>
+              ))}
+              <div className="instructions-group">
+                {t.instructionsFull.map((line, i) => (
+                  <p key={i} className={i === 0 ? 'instructions-heading' : 'instructions-detail'}>
+                    {i === 1 && <span className="dot bull-dot" />}
+                    {i === 2 && <span className="dot cow-dot" />}
+                    {i === 3 && <span className="dot miss-dot" />}
+                    {line}
+                  </p>
+                ))}
+              </div>
+              <div className="instructions-group">
+                {t.instructionsCount.map((line, i) => (
+                  <p key={i} className={i === 0 ? 'instructions-heading' : 'instructions-detail'}>{line}</p>
+                ))}
+              </div>
+              <div className="instructions-group">
+                {t.instructionsDifficulty.map((line, i) => (
+                  <p key={i} className={i === 0 ? 'instructions-heading' : 'instructions-detail'}>{line}</p>
+                ))}
+              </div>
             </div>
           </div>
-        )}
-      </div>
 
-      <div className="history-section hide-on-keyboard">
-        <button className="history-toggle" onClick={() => setHistoryOpen(o => !o)}>
-          <span>{t.history(playHistory.length)}</span>
-          <span className={`toggle-arrow ${historyOpen ? 'open' : ''}`}>&#9662;</span>
-        </button>
-        {historyOpen && (
-          <div className="history-panel">
+          <div className="info-section">
+            <h2 className="info-heading">{t.history(playHistory.length)}</h2>
             {playHistory.length === 0 ? (
               <p className="history-empty">{t.noGames}</p>
             ) : (
@@ -320,8 +331,8 @@ function App() {
               </>
             )}
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

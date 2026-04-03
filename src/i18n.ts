@@ -60,6 +60,10 @@ const en = {
     'Hard — 4-digit code, unlimited tries, count-only hints',
   ],
 
+  // Tabs
+  tabPlay: 'Play',
+  tabInfo: 'Info',
+
   // Language toggle
   langLabel: 'EN',
 };
@@ -116,6 +120,9 @@ const zh: typeof en = {
     '普通 — 4位密码，10次机会，完整提示',
     '困难 — 4位密码，无限次机会，仅计数提示',
   ],
+
+  tabPlay: '游戏',
+  tabInfo: '信息',
 
   langLabel: '中',
 };
