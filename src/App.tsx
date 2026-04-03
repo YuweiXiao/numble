@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useGame } from './hooks/useGame';
 import type { Difficulty } from './types';
 import { DIFFICULTIES } from './types';
@@ -54,7 +54,7 @@ function App() {
   const { difficulty, config, history, status, secret, submitGuess, newGame, playHistory, clearHistory } = useGame();
   const [inputs, setInputs] = useState<string[]>(Array(config.digits).fill(''));
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
-  const historyEndRef = useRef<HTMLDivElement | null>(null);
+  const historyRef = useRef<HTMLDivElement | null>(null);
   const [activeTab, setActiveTab] = useState<Tab>('play');
   const { t, lang, toggleLang } = useLang();
   const { open: keyboardOpen, viewportHeight } = useKeyboardState();
@@ -65,13 +65,10 @@ function App() {
     }
   }, [config.digits, history.length]);
 
-  const scrollToBottom = useCallback(() => {
-    historyEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, []);
-
   useEffect(() => {
-    scrollToBottom();
-  }, [history.length, scrollToBottom]);
+    const el = historyRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [history.length]);
 
   const handleInput = (index: number, value: string) => {
     if (!/^\d?$/.test(value)) return;
@@ -161,7 +158,7 @@ function App() {
           </div>
 
           <div className="game-area">
-            <div className="history">
+            <div className="history" ref={historyRef}>
               {history.length === 0 && status === 'playing' && (
                 <div className="empty-state">
                   <p>{t.emptyState(config.digits)}</p>
@@ -207,7 +204,6 @@ function App() {
                   )}
                 </div>
               ))}
-              <div ref={historyEndRef} />
             </div>
 
             {status !== 'playing' && (
@@ -251,9 +247,7 @@ function App() {
                 <div className="input-actions">
                   <button
                     className="submit-btn"
-                    onClick={handleSubmit}
-                    onTouchStart={e => e.preventDefault()}
-                    onMouseDown={e => e.preventDefault()}
+                    onPointerDown={e => { e.preventDefault(); handleSubmit(); }}
                     disabled={!guessIsValid}
                   >
                     {t.guessBtn}
